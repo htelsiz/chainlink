@@ -44,7 +44,7 @@ func (jpa *JsonParse) Perform(input models.RunResult, _ *store.Store) models.Run
 		return models.RunResult{}
 	}
 
-	return models.RunResultWithValue(rval.MustString())
+	return input.WithValue(rval.MustString())
 }
 
 func checkEarlyPath(js *simplejson.Json, path []string) (*simplejson.Json, error) {
