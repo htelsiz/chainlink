@@ -26,7 +26,7 @@ func TestMultiply_Perform(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			input := models.RunResult{
-				Output: cltest.JSONFromString(test.json),
+				Data: cltest.JSONFromString(test.json),
 			}
 			adapter := adapters.Multiply{Times: test.times}
 			result := adapter.Perform(input, nil)

@@ -64,7 +64,9 @@ func BytesToFunctionSelector(b []byte) FunctionSelector {
 }
 
 // HexToFunctionSelector converts the given string to a FunctionSelector.
-func HexToFunctionSelector(s string) FunctionSelector { return BytesToFunctionSelector(common.FromHex(s)) }
+func HexToFunctionSelector(s string) FunctionSelector {
+	return BytesToFunctionSelector(common.FromHex(s))
+}
 
 // String returns the FunctionSelector as a string type.
 func (f FunctionSelector) String() string { return hexutil.Encode(f[:]) }

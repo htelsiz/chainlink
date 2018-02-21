@@ -23,7 +23,7 @@ func TestHttpNotAUrlError(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			result := test.adapter.Perform(models.RunResult{}, nil)
-			assert.Equal(t, models.JSON{}, result.Output)
+			assert.Equal(t, models.JSON{}, result.Data)
 			assert.NotNil(t, result.Error)
 		})
 	}
