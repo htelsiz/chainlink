@@ -280,6 +280,14 @@ func TestIntegration_ExternalAdapter_Pending(t *testing.T) {
 	val, err := tr.Result.Value()
 	assert.NotNil(t, err)
 	assert.Equal(t, "", val)
+
+	jr = cltest.UpdateJobRunViaWeb(t, app, jr, `{"value":"100"}`)
+	jr = cltest.WaitForJobRunToComplete(t, app, cltest.CreateJobRunViaWeb(t, app, j))
+	tr = jr.TaskRuns[0]
+	assert.Equal(t, models.StatusPending, tr.Status)
+	val, err = tr.Result.Value()
+	assert.Nil(t, err)
+	assert.Equal(t, "100", val)
 }
 
 func TestIntegration_WeiWatchers(t *testing.T) {

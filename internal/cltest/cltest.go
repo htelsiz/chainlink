@@ -290,6 +290,23 @@ func CreateJobRunViaWeb(t *testing.T, app *TestApplication, j models.Job) models
 	return jr
 }
 
+func UpdateJobRunViaWeb(
+	t *testing.T,
+	app *TestApplication,
+	jr models.JobRun,
+	body string,
+) models.JobRun {
+	t.Helper()
+	url := app.Server.URL + "/v2/runs/" + jr.ID
+	resp := BasicAuthPost(url, "application/json", bytes.NewBufferString(body))
+	defer resp.Body.Close()
+
+	CheckStatusCode(t, resp, 200)
+	jrID := ParseCommonJSON(resp.Body).ID
+	assert.Nil(t, app.Store.One("ID", jrID, &jr))
+	return jr
+}
+
 func CreateBridgeTypeViaWeb(
 	t *testing.T,
 	app *TestApplication,
