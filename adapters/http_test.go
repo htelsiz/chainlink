@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestHttpNotAUrlError(t *testing.T) {
+func TestHttpAdapters_NotAUrlError(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
@@ -29,22 +29,21 @@ func TestHttpNotAUrlError(t *testing.T) {
 	}
 }
 
-func TestHttpGetAdapterPerform(t *testing.T) {
+func TestHttpGet_Perform(t *testing.T) {
 	t.Parallel()
 
 	cases := []struct {
 		name        string
 		status      int
 		want        string
-		wantExists  bool
 		wantErrored bool
 		response    string
 	}{
-		{"success", 200, "so good", true, false, `so good`},
-		{"success but error in body", 200, `{"error": "so good"}`, true, false, `{"error": "so good"}`},
-		{"success with HTML", 200, `<html>so good</html>`, true, false, `<html>so good</html>`},
-		{"not found", 400, "", false, true, `<html>so bad</html>`},
-		{"server error", 400, "", false, true, `Invalid request`},
+		{"success", 200, "results!", false, `results!`},
+		{"success but error in body", 200, `{"error": "results!"}`, false, `{"error": "results!"}`},
+		{"success with HTML", 200, `<html>results!</html>`, false, `<html>results!</html>`},
+		{"not found", 400, "inputValue", true, `<html>so bad</html>`},
+		{"server error", 400, "inputValue", true, `Invalid request`},
 	}
 
 	store, cleanup := cltest.NewStore()
@@ -52,7 +51,7 @@ func TestHttpGetAdapterPerform(t *testing.T) {
 
 	for _, test := range cases {
 		t.Run(test.name, func(t *testing.T) {
-			input := cltest.RunResultWithValue("unused")
+			input := cltest.RunResultWithValue("inputValue")
 			mock, cleanup := cltest.NewHTTPMockServer(t, test.status, "GET", test.response,
 				func(body string) { assert.Equal(t, ``, body) })
 			defer cleanup()
@@ -60,32 +59,30 @@ func TestHttpGetAdapterPerform(t *testing.T) {
 			hga := adapters.HttpGet{URL: cltest.MustParseWebURL(mock.URL)}
 			result := hga.Perform(input, store)
 
-			val, err := result.Get("value")
+			val, err := result.Value()
 			assert.Nil(t, err)
-			assert.Equal(t, test.want, val.String())
-			assert.Equal(t, test.wantExists, val.Exists())
+			assert.Equal(t, test.want, val)
 			assert.Equal(t, test.wantErrored, result.HasError())
 			assert.Equal(t, false, result.Pending)
 		})
 	}
 }
 
-func TestHttpPostAdapterPerform(t *testing.T) {
+func TestHttpPost_Perform(t *testing.T) {
 	t.Parallel()
 
 	cases := []struct {
 		name        string
 		status      int
 		want        string
-		wantExists  bool
 		wantErrored bool
 		response    string
 	}{
-		{"success", 200, "so meta", true, false, `so meta`},
-		{"success but error in body", 200, `{"error": "so meta"}`, true, false, `{"error": "so meta"}`},
-		{"success with HTML", 200, `<html>so meta</html>`, true, false, `<html>so meta</html>`},
-		{"not found", 400, "", false, true, `<html>so bad</html>`},
-		{"server error", 500, "", false, true, `big error`},
+		{"success", 200, "results!", false, `results!`},
+		{"success but error in body", 200, `{"error": "results!"}`, false, `{"error": "results!"}`},
+		{"success with HTML", 200, `<html>results!</html>`, false, `<html>results!</html>`},
+		{"not found", 400, "inputVal", true, `<html>so bad</html>`},
+		{"server error", 500, "inputVal", true, `big error`},
 	}
 
 	store, cleanup := cltest.NewStore()
@@ -93,10 +90,9 @@ func TestHttpPostAdapterPerform(t *testing.T) {
 
 	for _, test := range cases {
 		t.Run(test.name, func(t *testing.T) {
-			input := cltest.RunResultWithValue("modern")
-			wantedBody := `{"value":"modern"}`
+			input := cltest.RunResultWithValue("inputVal")
 			mock, cleanup := cltest.NewHTTPMockServer(t, test.status, "POST", test.response,
-				func(body string) { assert.Equal(t, wantedBody, body) })
+				func(body string) { assert.Equal(t, `{"value":"inputVal"}`, body) })
 			defer cleanup()
 
 			hpa := adapters.HttpPost{URL: cltest.MustParseWebURL(mock.URL)}
@@ -105,7 +101,7 @@ func TestHttpPostAdapterPerform(t *testing.T) {
 			val, err := result.Get("value")
 			assert.Nil(t, err)
 			assert.Equal(t, test.want, val.String())
-			assert.Equal(t, test.wantExists, val.Exists())
+			assert.Equal(t, true, val.Exists())
 			assert.Equal(t, test.wantErrored, result.HasError())
 			assert.Equal(t, false, result.Pending)
 		})
